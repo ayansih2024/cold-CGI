@@ -29,9 +29,6 @@ uploaded_models = []
 # List to store user activities log
 user_activities_log = []
 
-# Define the admin usernames
-admin_usernames = ["SnowFlakeCG official", "Cold CGI official"]
-
 # Initialize SessionState class
 class SessionState:
     def __init__(self, **kwargs):
@@ -45,7 +42,7 @@ session_state = SessionState(username=None)
 st.title("3D Model Library")
 
 # Sidebar for navigation
-menu = st.sidebar.selectbox("Menu", ["Home", "Filter Models", "Upload 3D Model", "Sign-Up/Login", "Account", "Admin Panel"])
+menu = st.sidebar.selectbox("Menu", ["Home", "Filter Models", "Upload 3D Model", "Sign-Up/Login", "Admin Panel"])
 
 if menu == "Filter Models":
     st.title("Filter Models")
@@ -110,72 +107,47 @@ elif menu == "Sign-Up/Login":
 
             st.success("Sign-up successful!")
 
-elif menu == "Account":
-    st.title("Account")
-    st.subheader("Cancel Account")
-    cancel_username = st.text_input("Enter your Username to cancel your account", key="cancel_username")
-    cancel_password = st.text_input("Enter your Password", type="password", key="cancel_password")
-    cancel_account_button = st.button("Cancel Account")
+elif menu == "Admin Panel":
+    st.title("Admin Panel")
 
-    if cancel_account_button:
-        # Check if the entered username exists and the hashed password matches
-        if cancel_username in user_credentials and \
-                user_credentials[cancel_username] == hashlib.sha256(cancel_password.encode()).hexdigest():
+    st.subheader("Manage Users")
+
+    # Display a list of signed-up users
+    st.write("Users who have signed up:")
+    for user in user_credentials.keys():
+        st.write(f"- {user}")
+
+    # Allow admin to delete a user
+    user_to_delete = st.text_input("Enter username to delete:", key="user_to_delete")
+    delete_user_button = st.button("Delete User")
+
+    if delete_user_button:
+        st.write(f"Entered username: {user_to_delete}")
+        st.write("Admins can delete any user.")
+
+        if user_to_delete in user_credentials:
             # Remove the user from the stored credentials
-            del user_credentials[cancel_username]
+            del user_credentials[user_to_delete]
 
             # Save the updated user credentials to the file
             with open(user_credentials_file, "w") as file:
                 file.write(str(user_credentials))
 
-            st.success("Account canceled successfully.")
+            st.success(f"User '{user_to_delete}' deleted successfully.")
         else:
-            st.error("Invalid username or password. Please try again.")
+            st.error("User not found. Please enter a valid username.")
 
-elif menu == "Admin Panel":
-    st.title("Admin Panel")
+    st.subheader("View User Activities")
 
-    # Check if the current user is an admin
-    if session_state.username in admin_usernames:
-        st.subheader("Manage Users")
+    # Display a simple log of user activities (replace this with a more sophisticated logging system)
+    st.write("User Activities Log:")
+    # Display the activities log (add more details based on your actual log)
+    for log_entry in user_activities_log:
+        st.write(f"- {log_entry}")
 
-        # Display a list of signed-up users
-        st.write("Users who have signed up:")
-        for user in user_credentials.keys():
-            st.write(f"- {user}")
+    # Add more admin functionalities here
 
-        # Allow admin to delete a user
-        user_to_delete = st.text_input("Enter username to delete:", key="user_to_delete")
-        delete_user_button = st.button("Delete User")
-
-        if delete_user_button:
-            st.write(f"Entered username: {user_to_delete}")
-            st.write(f"Admin usernames: {admin_usernames}")
-            
-            if user_to_delete in user_credentials:
-                # Remove the user from the stored credentials
-                del user_credentials[user_to_delete]
-
-                # Save the updated user credentials to the file
-                with open(user_credentials_file, "w") as file:
-                    file.write(str(user_credentials))
-
-                st.success(f"User '{user_to_delete}' deleted successfully.")
-            else:
-                st.error("User not found. Please enter a valid username.")
-
-        st.subheader("View User Activities")
-
-        # Display a simple log of user activities (replace this with a more sophisticated logging system)
-        st.write("User Activities Log:")
-        # Display the activities log (add more details based on your actual log)
-        for log_entry in user_activities_log:
-            st.write(f"- {log_entry}")
-
-        # Add more admin functionalities here
-
-    else:
-        st.error("You do not have permission to access the admin panel.")
+# ... (rest of the code remains unchanged)
 
 # Display filtered model information (without images or download links)
 st.title("Available Models")
