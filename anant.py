@@ -26,11 +26,26 @@ except FileNotFoundError:
 # List to store uploaded models during the session
 uploaded_models = []
 
+# List to store user activities log
+user_activities_log = []
+
+# Define the admin usernames
+admin_usernames = ["SnowFlakeCG official", "Cold CGI official"]
+
+# Initialize SessionState class
+class SessionState:
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+# Create a session_state object
+session_state = SessionState(username=None)
+
 # Main content area title
 st.title("3D Model Library")
 
 # Sidebar for navigation
-menu = st.sidebar.selectbox("Menu", ["Home", "Filter Models", "Upload 3D Model", "Sign-Up/Login", "Account"])
+menu = st.sidebar.selectbox("Menu", ["Home", "Filter Models", "Upload 3D Model", "Sign-Up/Login", "Account", "Admin Panel"])
 
 if menu == "Filter Models":
     st.title("Filter Models")
@@ -68,7 +83,10 @@ elif menu == "Sign-Up/Login":
         # Check if the entered username exists and the hashed password matches
         if username_input in user_credentials and \
                 user_credentials[username_input] == hashlib.sha256(password_input.encode()).hexdigest():
+            session_state.username = username_input  # Set the session_state variable
             st.success(f"Login successful! Welcome, {username_input}.")
+            # Log the user activity
+            user_activities_log.append(f"{username_input} logged in.")
         else:
             st.error("Invalid username or password. Please try again.")
 
@@ -113,6 +131,51 @@ elif menu == "Account":
             st.success("Account canceled successfully.")
         else:
             st.error("Invalid username or password. Please try again.")
+
+elif menu == "Admin Panel":
+    st.title("Admin Panel")
+
+    # Check if the current user is an admin
+    if session_state.username in admin_usernames:
+        st.subheader("Manage Users")
+
+        # Display a list of signed-up users
+        st.write("Users who have signed up:")
+        for user in user_credentials.keys():
+            st.write(f"- {user}")
+
+        # Allow admin to delete a user
+        user_to_delete = st.text_input("Enter username to delete:", key="user_to_delete")
+        delete_user_button = st.button("Delete User")
+
+        if delete_user_button:
+            st.write(f"Entered username: {user_to_delete}")
+            st.write(f"Admin usernames: {admin_usernames}")
+            
+            if user_to_delete in user_credentials:
+                # Remove the user from the stored credentials
+                del user_credentials[user_to_delete]
+
+                # Save the updated user credentials to the file
+                with open(user_credentials_file, "w") as file:
+                    file.write(str(user_credentials))
+
+                st.success(f"User '{user_to_delete}' deleted successfully.")
+            else:
+                st.error("User not found. Please enter a valid username.")
+
+        st.subheader("View User Activities")
+
+        # Display a simple log of user activities (replace this with a more sophisticated logging system)
+        st.write("User Activities Log:")
+        # Display the activities log (add more details based on your actual log)
+        for log_entry in user_activities_log:
+            st.write(f"- {log_entry}")
+
+        # Add more admin functionalities here
+
+    else:
+        st.error("You do not have permission to access the admin panel.")
 
 # Display filtered model information (without images or download links)
 st.title("Available Models")
